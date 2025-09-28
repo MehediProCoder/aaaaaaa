@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Payment System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #ff0000 0%, #dc143c 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .checkout-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header {
+            background: linear-gradient(90deg, #ff0000 0%, #dc143c 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 10px rgba(255, 0, 0, 0.2);
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #ff0000;
+            font-size: 18px;
+        }
+
+        .company-name {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .checkout-content {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 40px;
+            padding: 40px;
+        }
+
+        .order-summary {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .order-summary h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .order-summary h2::before {
+            content: "🛍️";
+            font-size: 24px;
+        }
+
+        .product-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .product-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .product-image {
+            width: 60px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff0000, #ff4444);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .product-details {
+            flex: 1;
+        }
+
+        .product-name {
+            font-weight: 600;
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .product-description {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .product-price {
+            font-weight: 700;
+            font-size: 18px;
+            color: #ff0000;
+        }
+
+        .summary-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding: 8px 0;
+        }
+
+        .summary-line.total-due {
+            font-size: 20px;
+            font-weight: 700;
+            padding-top: 20px;
+            margin-top: 20px;
+            border-top: 2px solid #e74c3c;
+            color: #2c3e50;
+        }
+
+        .summary-line .label {
+            color: #7f8c8d;
+        }
+
+        .summary-line .value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .payment-details {
+            background: white;
+            padding: 10px;
+            border-radius: 15px;
+        }
+
+        .section-block {
+            margin-bottom: 35px;
+        }
+
+        .section-block h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-block h2.contact::before { content: "📧"; }
+        .section-block h2.payment::before { content: "💳"; }
+        .section-block h2.billing::before { content: "🏠"; }
+
+        input[type="email"], 
+        input[type="text"], 
+        select {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        input:focus, select:focus {
+            border-color: #ff0000;
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+        }
+
+        .payment-card-option {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment-card-option:hover {
+            border-color: #ff0000;
+            background: white;
+        }
+
+        .payment-card-option input[type="radio"] {
+            margin-right: 12px;
+            transform: scale(1.2);
+        }
+
+        .card-details {
+            position: relative;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }
+
+        #card-number {
+            padding-right: 120px;
+        }
+
+        .card-icons {
+            position: absolute;
+            top: 35px;
+            right: 30px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .card-icon {
+            width: 32px;
+            height: 20px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .visa { background: linear-gradient(135deg, #1a1f71, #0f3460); }
+        .mastercard { background: linear-gradient(135deg, #eb001b, #ff5f00); }
+        .amex { background: linear-gradient(135deg, #006fcf, #007cc3); }
+
+        .card-fields-row {
+            display: grid;
+            grid-template-columns: 1fr 120px;
+            gap: 15px;
+            position: relative;
+        }
+
+        .cvc-help {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 16px;
+            color: #95a5a6;
+            cursor: help;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .terms-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #ff0000;
+        }
+
+        .terms-checkbox input {
+            margin-top: 4px;
+            transform: scale(1.3);
+        }
+
+        .terms-checkbox label {
+            font-size: 13px;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+
+        #subscribe-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #ff0000 0%, #dc143c 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #subscribe-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 0, 0.4);
+        }
+
+        #subscribe-btn:active {
+            transform: translateY(0);
+        }
+
+        #subscribe-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        #subscribe-btn:hover::before {
+            left: 100%;
+        }
+
+        .security-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e8;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #27ae60;
+        }
+
+        .security-info::before {
+            content: "🔒";
+            font-size: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .checkout-content {
+                grid-template-columns: 1fr;
+                gap: 30px;
+                padding: 20px;
+            }
+
+            .order-summary {
+                order: 2;
+                position: static;
+            }
+
+            .payment-details {
+                order: 1;
+            }
+
+            header {
+                padding: 15px 20px;
+            }
+
+            .company-name {
+                font-size: 20px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .card-fields-row {
+                grid-template-columns: 1fr;
+            }
+
+            #card-number {
+                padding-right: 15px;
+            }
+
+            .card-icons {
+                position: static;
+                justify-content: center;
+                margin: 10px 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+
+            .checkout-container {
+                border-radius: 15px;
+            }
+
+            header {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+
+            .checkout-content {
+                padding: 15px;
+            }
+
+            .order-summary,
+            .section-block {
+                padding: 20px;
+            }
+        }
+
+        .loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .loading #subscribe-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="checkout-container">
+        <header>
+            <div class="logo">CC</div>
+            <div class="company-name">Coca-Cola Inc.</div>
+        </header>
+        
+        <div class="checkout-content">
+            <div class="order-summary">
+                <h2>Your Order Summary</h2>
+                
+                <div class="product-item">
+                    <div class="product-image">Coca-Cola<br>Classic</div>
+                    <div class="product-details">
+                        <div class="product-name">Coca-Cola Classic</div>
+                    </div>
+                    <div class="product-price">$1.50</div>
+                </div>
+                
+                <div class="summary-line">
+                    <span class="label">Subtotal</span>
+                    <span class="value">$1.50</span>
+                </div>
+                <div class="summary-line">
+                    <span class="label">Sales Tax (5%)</span>
+                    <span class="value" id="tax-amount">$0.08</span>
+                </div>
+                <div class="summary-line">
+                    <span class="label">Shipping</span>
+                    <span class="value">Free</span>
+                </div>
+                <div class="summary-line total-due">
+                    <span class="label">Total due today</span>
+                    <span class="value" id="total-amount">$1.58</span>
+                </div>
+            </div>
+
+            <div class="payment-details">
+                <div class="section-block">
+                    <h2 class="contact">Contact information</h2>
+                    <input type="email" id="email" placeholder="Enter your email address">
+                </div>
+
+                <div class="section-block">
+                    <h2 class="payment">Payment method</h2>
+                    <div class="payment-card-option">
+                        <input type="radio" id="card" name="payment-method" checked>
+                        <label for="card"><strong>Credit / Debit Card</strong></label>
+                    </div>
+                    <div class="card-details">
+                        <input type="text" id="card-number" placeholder="1234 1234 1234 1234" maxlength="19">
+                        <div class="card-icons">
+                            <div class="card-icon visa">VISA</div>
+                            <div class="card-icon mastercard">MC</div>
+                            <div class="card-icon amex">AMEX</div>
+                        </div>
+                        <div class="card-fields-row">
+                            <input type="text" id="expiry-date" placeholder="MM / YY" maxlength="7">
+                            <input type="text" id="cvc" placeholder="CVC" maxlength="4">
+                            <span class="cvc-help" title="3-4 digits on back of card">?</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-block">
+                    <h2 class="billing">Billing address</h2>
+                    <div class="form-row">
+                        <input type="text" id="first-name" placeholder="First name">
+                        <input type="text" id="last-name" placeholder="Last name">
+                    </div>
+                    <select id="country">
+                        <option value="Bangladesh" selected>🇧🇩 Bangladesh</option>
+                        <option value="USA">🇺🇸 United States</option>
+                        <option value="UK">🇬🇧 United Kingdom</option>
+                        <option value="Canada">🇨🇦 Canada</option>
+                        <option value="Australia">🇦🇺 Australia</option>
+                    </select>
+                    <input type="text" id="address-line1" placeholder="Street address">
+                    <div class="form-row">
+                        <input type="text" id="city" placeholder="City">
+                        <input type="text" id="postal-code" placeholder="Postal code">
+                    </div>
+                </div>
+
+                <div class="terms-checkbox">
+                    <input type="checkbox" id="terms" required>
+                    <label for="terms">
+                        I agree to Coca-Cola's <strong>Terms of Sale</strong> and <strong>Privacy Policy</strong>. 
+                        By proceeding, I acknowledge that I have read and understood the terms and conditions.
+                    </label>
+                </div>
+
+                <button id="subscribe-btn">🛒 Place Order Securely</button>
+                
+                <div class="security-info">
+                    This Payment System is designed by Mehedi Hasan
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const price = 1.50;
+            const taxRate = 0.05;
+
+            const taxAmountEl = document.getElementById('tax-amount');
+            const totalAmountEl = document.getElementById('total-amount');
+            const subscribeBtn = document.getElementById('subscribe-btn');
+            const container = document.querySelector('.checkout-container');
+
+            // Calculate and display amounts
+            const tax = price * taxRate;
+            const total = price + tax;
+
+            taxAmountEl.textContent = `$${tax.toFixed(2)}`;
+            totalAmountEl.textContent = `$${total.toFixed(2)}`;
+
+            // Card number formatting
+            const cardNumberInput = document.getElementById('card-number');
+            cardNumberInput.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                value = value.substring(0, 16);
+                value = value.match(/.{1,4}/g)?.join(' ') || '';
+                e.target.value = value;
+            });
+
+            // Expiry date formatting
+            const expiryInput = document.getElementById('expiry-date');
+            expiryInput.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length >= 2) {
+                    value = value.substring(0, 2) + ' / ' + value.substring(2, 4);
+                }
+                e.target.value = value;
+            });
+
+            // CVC validation
+            const cvcInput = document.getElementById('cvc');
+            cvcInput.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/\D/g, '').substring(0, 4);
+            });
+
+            // Generate Markdown content
+            const generateMarkdown = (formData) => {
+                const date = new Date().toLocaleString();
+                return `
+# Order Summary
+**Date and Time**: ${date}
+
+## Order Details
+- **Product**: Coca-Cola Classic
+- **Subtotal**: $${formData.subtotal.toFixed(2)}
+- **Sales Tax (5%)**: $${formData.tax.toFixed(2)}
+- **Shipping**: Free
+- **Total Due**: $${formData.total.toFixed(2)}
+
+## Contact Information
+- **Email**: ${formData.email}
+
+## Payment Method
+- **Method**: Credit / Debit Card
+- **Card Number**: ${formData.cardNumber.slice(-4).padStart(formData.cardNumber.length, '*')}
+- **Expiry Date**: ${formData.expiryDate}
+- **CVC**: ${formData.cvc.padStart(formData.cvc.length, '*')}
+
+## Billing Address
+- **Name**: ${formData.firstName} ${formData.lastName}
+- **Country**: ${formData.country}
+- **Street Address**: ${formData.address}
+- **City**: ${formData.city}
+- **Postal Code**: ${formData.postalCode}
+
+---
+*This Payment System is designed by Mehedi Hasan*
+                `;
+            };
+
+            // Download Markdown file
+            const downloadMarkdown = (content, filename) => {
+                const blob = new Blob([content], { type: 'text/markdown' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            };
+
+            // Form validation and submission
+            subscribeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+
+                const email = document.getElementById('email').value;
+                const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
+                const expiryDate = document.getElementById('expiry-date').value;
+                const cvc = document.getElementById('cvc').value;
+                const firstName = document.getElementById('first-name').value;
+                const lastName = document.getElementById('last-name').value;
+                const country = document.getElementById('country').value;
+                const address = document.getElementById('address-line1').value;
+                const city = document.getElementById('city').value;
+                const postalCode = document.getElementById('postal-code').value;
+                const termsChecked = document.getElementById('terms').checked;
+
+                // Basic validation
+                if (!email || !email.includes('@')) {
+                    alert('Please enter a valid email address.');
+                    return;
+                }
+
+                if (cardNumber.length < 13) {
+                    alert('Please enter a valid card number.');
+                    return;
+                }
+
+                if (!expiryDate.match(/\d{2} \/ \d{2}/)) {
+                    alert('Please enter a valid expiry date (MM / YY).');
+                    return;
+                }
+
+                if (cvc.length < 3) {
+                    alert('Please enter a valid CVC code.');
+                    return;
+                }
+
+                if (!firstName || !lastName) {
+                    alert('Please enter your full name.');
+                    return;
+                }
+
+                if (!address) {
+                    alert('Please enter your address.');
+                    return;
+                }
+
+                if (!city) {
+                    alert('Please enter your city.');
+                    return;
+                }
+
+                if (!postalCode) {
+                    alert('Please enter your postal code.');
+                    return;
+                }
+
+                if (!termsChecked) {
+                    alert('Please agree to the Terms of Sale and Privacy Policy.');
+                    return;
+                }
+
+                // Show loading state
+                container.classList.add('loading');
+                subscribeBtn.textContent = 'Processing Order...';
+
+                // Simulate processing
+                setTimeout(() => {
+                    container.classList.remove('loading');
+                    subscribeBtn.innerHTML = '🛒 Place Order Securely';
+
+                    // Prepare form data
+                    const formData = {
+                        subtotal: price,
+                        tax: tax,
+                        total: total,
+                        email: email,
+                        cardNumber: cardNumber,
+                        expiryDate: expiryDate,
+                        cvc: cvc,
+                        firstName: firstName,
+                        lastName: lastName,
+                        country: country,
+                        address: address,
+                        city: city,
+                        postalCode: postalCode
+                    };
+
+                    // Generate and download Markdown
+                    const markdownContent = generateMarkdown(formData);
+                    downloadMarkdown(markdownContent, 'order_summary.md');
+
+                    // Success message
+                    alert(`🎉 Order Placed Successfully!\n\nOrder Summary:\n- Coca-Cola Classic: $1.50\n- Tax: $${tax.toFixed(2)}\n- Total: $${total.toFixed(2)}\n\nThank you for your purchase! A summary has been downloaded as order_summary.md.`);
+
+                    // In a real application, you would send this data to a server here.
+                }, 2000);
+            });
+
+            // Add subtle animations for better UX
+            const inputs = document.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                input.addEventListener('focus', (e) => {
+                    e.target.style.transform = 'scale(1.02)';
+                });
+                
+                input.addEventListener('blur', (e) => {
+                    e.target.style.transform = 'scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
